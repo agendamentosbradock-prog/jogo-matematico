@@ -1,0 +1,294 @@
+const questionsDB = {
+    easy: [
+        { text: "Qual o valor de seno(30°)?", options: ["1", "0.5", "√3/2", "√2/2"], correct: 1, explanation: "Sen(30°) é um ângulo notável. Seu valor é 1/2, que é 0.5." },
+        { text: "Qual o valor da tangente(45°)?", options: ["√2", "0.5", "1", "Indefinido"], correct: 2, explanation: "A tangente é o cateto oposto dividido pelo adjacente. Em 45°, os catetos são iguais, então o resultado é 1." },
+        { text: "O valor de cos(0°) é:", options: ["1", "0", "-1", "0.5"], correct: 0, explanation: "No início do círculo trigonométrico (0°), a projeção no eixo X (cosseno) é máxima, valendo 1." },
+        { text: "O valor de cos(90°) é:", options: ["1", "0", "-1", "√2/2"], correct: 1, explanation: "A 90°, a projeção do ângulo no eixo X (cosseno) é zero." },
+        { text: "Um papagaio está no ombro de um pirata. O mastro do navio tem 10m de altura e o papagaio voa até o topo. Se a distância do pirata até a base do mastro é 10m, qual o ângulo de visão do pirata?", options: ["30°", "60°", "45°", "90°"], correct: 2, explanation: "Se o cateto oposto (altura) e o cateto adjacente (distância) são iguais (10m), o triângulo é isósceles, e o ângulo é de 45°." }
+    ],
+    medium: [
+        { text: "O valor de cos(180°) é:", options: ["1", "0", "-1", "Indefinido"], correct: 2, explanation: "No círculo trigonométrico, 180° está no ponto mais à esquerda do eixo x, que corresponde ao valor -1." },
+        { text: "Se a hipotenusa de um mapa é 10 e o cateto OPOSTO é 6, qual o SENO do ângulo?", options: ["0.8 (cosseno)", "1.66", "10/6", "0.6"], correct: 3, explanation: "Seno é Cateto Oposto / Hipotenusa. Portanto, 6 / 10 = 0.6." },
+        { text: "Qual o valor de sen(270°)?", options: ["0", "-1", "1", "Indefinido"], correct: 1, explanation: "No círculo trigonométrico, 270° está no ponto mais baixo do eixo y, que corresponde ao valor -1 para o seno." },
+        { text: "Um navio navega 200 milhas a leste e depois 200 milhas ao norte. Qual a distância total em linha reta da origem?", options: ["200 milhas", "400 milhas", "282.8 milhas", "346.4 milhas"], correct: 2, explanation: "Usando Pitágoras (a² + b² = c²), temos 200² + 200² = c². c = √(80000) ≈ 282.8 milhas." },
+        { text: "Converter π/2 radianos para graus resulta em:", options: ["45°", "180°", "270°", "90°"], correct: 3, explanation: "Sabendo que π radianos é igual a 180°, então π/2 é metade disso, ou seja, 90°." }
+    ],
+    hard: [
+        { text: "Qual é a identidade trigonométrica fundamental?", options: ["sen²(x) + cos²(x) = 1", "sen(x) / cos(x) = cot(x)", "sen²(x) - cos²(x) = 1", "1 + cot²(x) = cossec²(x)"], correct: 0, explanation: "A Relação Fundamental da Trigonometria diz que a soma dos quadrados do seno e do cosseno de um mesmo ângulo é sempre 1." },
+        { text: "A Lei dos Cossenos é a² = b² + c² - ...?", options: ["2bc·sen(A)", "bc·cos(A)", "2bc·cos(A)", "2ab·cos(C)"], correct: 2, explanation: "A fórmula completa da Lei dos Cossenos é a² = b² + c² - 2bc·cos(A), relacionando os lados de um triângulo com o cosseno do ângulo oposto." },
+        { text: "O valor de sec(60°) é:", options: ["0.5", "2", "1.73", "Não existe"], correct: 1, explanation: "A secante é o inverso do cosseno. Como cos(60°) = 0.5, a sec(60°) = 1 / 0.5 = 2." },
+        { text: "A expressão (sen(x) + cos(x))² é igual a:", options: ["1", "1 + tan(x)", "sen²(x) + cos²(x)", "1 + sen(2x)"], correct: 3, explanation: "Expandindo, temos sen²(x) + 2sen(x)cos(x) + cos²(x). Como sen²(x)+cos²(x)=1 e 2sen(x)cos(x)=sen(2x), o resultado é 1+sen(2x)." },
+        { text: "Qual o valor de cos(135°)?", options: ["√2/2", "-1/2", "-√2/2", "√3/2"], correct: 2, explanation: "O ângulo de 135° está no segundo quadrante, onde o cosseno é negativo. Seu ângulo de referência é 45°, então cos(135°) = -cos(45°) = -√2/2." }
+    ]
+};
+
+const pinButton = document.getElementById('pin-button');
+const readyButton = document.getElementById('ready-button');
+const answersGrid = document.getElementById('answers-grid');
+const difficultyContainer = document.getElementById('difficulty-container');
+const reviewButton = document.getElementById('review-button');
+const restartGameButton = document.getElementById('restart-game-button');
+
+const sounds = {
+    music: document.getElementById('music-bg'),
+    click: document.getElementById('sound-click'),
+    correct: document.getElementById('sound-correct'),
+    wrong: document.getElementById('sound-wrong'),
+    kraken: document.getElementById('sound-kraken')
+};
+
+let players = [];
+let playerNickname = "Você";
+let currentQuestionIndex = 0;
+let timerInterval;
+let selectedQuestions = [];
+let playerAnswers = [];
+
+function playSound(soundName) {
+    const sound = sounds[soundName];
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => {});
+    }
+}
+
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+pinButton.addEventListener('click', () => {
+    playSound('click');
+    if (document.getElementById('pin-input').value === '2025') {
+        switchScreen('lobby-screen');
+        document.body.addEventListener('click', () => {
+            if (sounds.music.paused) sounds.music.play().catch(e => {});
+        }, { once: true });
+        setupLobby();
+    }
+});
+
+function setupLobby() {
+    players = [];
+    const botNames = ["Barba-Roxa", "Anne Bonny", "Olho de Vidro"];
+    const playerGrid = document.getElementById('player-grid');
+    playerGrid.innerHTML = '';
+    botNames.forEach((name, index) => {
+        setTimeout(() => {
+            if (players.length < 4) {
+                players.push({ name, score: 0, isBot: true });
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.textContent = `🏴‍☠️ ${name}`;
+                card.style.animationDelay = `${index * 0.2}s`;
+                playerGrid.appendChild(card);
+            }
+        }, (index + 1) * 1000);
+    });
+    document.getElementById('nickname-input').value = '';
+    document.getElementById('nickname-setup').style.display = 'flex';
+}
+
+readyButton.addEventListener('click', () => {
+    playSound('click');
+    playerNickname = document.getElementById('nickname-input').value || "Pirata Anônimo";
+    players.unshift({ name: playerNickname, score: 0, isBot: false });
+
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    card.textContent = `🦜 ${playerNickname}`;
+    document.getElementById('player-grid').prepend(card);
+
+    document.getElementById('nickname-setup').style.display = 'none';
+    switchScreen('difficulty-screen');
+});
+
+difficultyContainer.addEventListener('click', (e) => {
+    const card = e.target.closest('.difficulty-card');
+    if (card) {
+        playSound('click');
+        const difficulty = card.dataset.difficulty;
+        selectedQuestions = questionsDB[difficulty];
+        startGame();
+    }
+});
+
+function startGame() {
+    currentQuestionIndex = 0;
+    playerAnswers = [];
+    showQuestion();
+}
+
+function showQuestion() {
+    if (currentQuestionIndex >= selectedQuestions.length) {
+        showPodium();
+        return;
+    }
+
+    const isKrakenRound = currentQuestionIndex === selectedQuestions.length - 1;
+    document.getElementById('kraken-banner').style.display = isKrakenRound ? 'block' : 'none';
+    if (isKrakenRound) playSound('kraken');
+
+    switchScreen('game-screen');
+    const question = selectedQuestions[currentQuestionIndex];
+    const player = players.find(p => !p.isBot);
+
+    document.getElementById('question-counter').textContent = `Questão ${currentQuestionIndex + 1}/${selectedQuestions.length}`;
+    document.getElementById('player-score').textContent = `💰 ${player.score}`;
+    document.getElementById('question-text').textContent = question.text;
+
+    document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+        btn.querySelector('.answer-text').textContent = question.options[i];
+        btn.className = 'answer-btn';
+        btn.disabled = false;
+        btn.dataset.index = i;
+    });
+    startTimer(20);
+}
+
+function startTimer(duration) {
+    const fuseEl = document.getElementById('timer-fuse');
+    const sparkEl = document.getElementById('timer-spark');
+
+    fuseEl.style.transition = 'none';
+    sparkEl.style.transition = 'none';
+    fuseEl.style.transform = 'scaleX(1)';
+    sparkEl.style.left = '100%';
+
+    setTimeout(() => {
+        fuseEl.style.transition = `transform ${duration}s linear`;
+        sparkEl.style.transition = `left ${duration}s linear`;
+        fuseEl.style.transform = 'scaleX(0)';
+        sparkEl.style.left = '0%';
+    }, 100);
+
+    timerInterval = setTimeout(() => handleAnswer(-1), duration * 1000);
+}
+
+answersGrid.addEventListener('click', (e) => {
+    const button = e.target.closest('.answer-btn');
+    if (button && !button.disabled) {
+        clearTimeout(timerInterval);
+        document.getElementById('timer-fuse').style.transition = 'none';
+        document.getElementById('timer-spark').style.transition = 'none';
+        handleAnswer(parseInt(button.dataset.index));
+    }
+});
+
+function handleAnswer(selectedIndex) {
+    playerAnswers.push({ question: selectedQuestions[currentQuestionIndex], answered: selectedIndex });
+    playSound(selectedIndex === -1 ? 'wrong' : 'click');
+    document.querySelectorAll('.answer-btn').forEach(btn => btn.disabled = true);
+
+    const question = selectedQuestions[currentQuestionIndex];
+    const isCorrect = selectedIndex === question.correct;
+    let pointsGained = 0;
+
+    if (isCorrect) {
+        playSound('correct');
+        const timeRemaining = parseFloat(window.getComputedStyle(document.getElementById('timer-fuse')).transform.split(',')[4]);
+        pointsGained = Math.round(500 + 500 * timeRemaining);
+        if (currentQuestionIndex === selectedQuestions.length - 1) {
+            pointsGained *= 2;
+        }
+        players.find(p => !p.isBot).score += pointsGained;
+    } else {
+        playSound('wrong');
+    }
+
+    document.querySelector(`.answer-btn[data-index='${question.correct}']`).classList.add('correct');
+    if (!isCorrect && selectedIndex !== -1) {
+        document.querySelector(`.answer-btn[data-index='${selectedIndex}']`).classList.add('incorrect');
+    }
+
+    players.filter(p => p.isBot).forEach(bot => {
+        if (Math.random() < 0.8) bot.score += Math.round(400 + Math.random() * 400);
+    });
+
+    setTimeout(() => showFeedback(isCorrect, pointsGained), 2000);
+}
+
+function showFeedback(isCorrect, pointsGained) {
+    const feedbackScreen = document.getElementById('feedback-screen');
+    const feedbackText = document.getElementById('feedback-text');
+    const pointsText = document.getElementById('points-text');
+    const explanationText = document.getElementById('explanation-text');
+
+    feedbackScreen.className = `screen active ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+
+    if (isCorrect) {
+        feedbackText.textContent = "TESOURO!";
+        pointsText.textContent = `+${pointsGained} Dobrões!`;
+        pointsText.style.display = 'block';
+        explanationText.style.display = 'none';
+    } else {
+        feedbackText.textContent = "MARUJO!";
+        pointsText.style.display = 'none';
+        explanationText.style.display = 'block';
+        const question = selectedQuestions[currentQuestionIndex];
+        const correctOptionText = question.options[question.correct];
+        explanationText.innerHTML = `A resposta certa era: <strong>${correctOptionText}</strong>.<br>${question.explanation}`;
+    }
+    setTimeout(showLeaderboard, 5000);
+}
+
+function showLeaderboard() {
+    switchScreen('leaderboard-screen');
+    players.sort((a, b) => b.score - a.score);
+    const listEl = document.getElementById('leaderboard-list');
+    listEl.innerHTML = `<li class="leaderboard-item" style="background: none; border: none; box-shadow: none; color: white; text-shadow: 2px 2px 4px black; font-family: 'Bangers', cursive; font-size: 2.5rem;"><span>PROCURADO</span><span>RECOMPENSA</span></li>`;
+
+    players.slice(0, 5).forEach((player, index) => {
+        const item = document.createElement('li');
+        item.className = 'leaderboard-item';
+        item.style.animationDelay = `${index * 0.2}s`;
+        item.innerHTML = `<span>${player.isBot ? '🏴‍☠️' : '🦜'} ${player.name}</span><strong>💰 ${player.score}</strong>`;
+        listEl.appendChild(item);
+    });
+
+    setTimeout(() => {
+        currentQuestionIndex++;
+        showQuestion();
+    }, 5000);
+}
+
+function showPodium() {
+    switchScreen('podium-screen');
+    sounds.music.pause();
+    players.sort((a, b) => b.score - a.score);
+    const top3 = players.slice(0, 3);
+
+    document.querySelector('#podium-1 .podium-name').textContent = top3[0]?.name || '-';
+    document.querySelector('#podium-1 .podium-score').textContent = `💰 ${top3[0]?.score || 0}`;
+    document.querySelector('#podium-2 .podium-name').textContent = top3[1]?.name || '-';
+    document.querySelector('#podium-2 .podium-score').textContent = `💰 ${top3[1]?.score || 0}`;
+    document.querySelector('#podium-3 .podium-name').textContent = top3[2]?.name || '-';
+    document.querySelector('#podium-3 .podium-score').textContent = `💰 ${top3[2]?.score || 0}`;
+}
+
+reviewButton.addEventListener('click', () => {
+    playSound('click');
+    switchScreen('review-screen');
+    const listEl = document.getElementById('review-list');
+    listEl.innerHTML = '';
+    playerAnswers.forEach((answerData, i) => {
+        const { question, answered } = answerData;
+        const isPlayerCorrect = answered === question.correct;
+        const playerAnswerText = answered === -1 ? "Sem resposta" : question.options[answered];
+
+        const item = document.createElement('li');
+        item.className = 'review-item';
+        item.innerHTML = `
+            <h4>${i+1}. ${question.text}</h4>
+            <p>Sua resposta: <span class="review-answer ${isPlayerCorrect ? '' : 'player-wrong'}">${playerAnswerText}</span></p>
+            <p>Resposta correta: <span class="review-answer correct-answer">${question.options[question.correct]}</span></p>
+            <p><strong>Explicação do Capitão:</strong> ${question.explanation}</p>
+        `;
+        listEl.appendChild(item);
+    });
+});
+
+restartGameButton.addEventListener('click', () => {
+    playSound('click');
+    location.reload();
+});

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesouro Trigonométrico</title>
+    <!-- Links para fontes e para o arquivo CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&family=Bangers&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Efeitos Sonoros -->
+    <audio id="music-bg" src="https://cdn.pixabay.com/download/audio/2022/08/17/audio_b484591249.mp3" loop></audio>
+    <audio id="sound-click" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_24ae738a8e.mp3"></audio>
+    <audio id="sound-correct" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_365599e525.mp3"></audio>
+    <audio id="sound-wrong" src="https://cdn.pixabay.com/download/audio/2022/03/14/audio_14f339f1b3.mp3"></audio>
+    <audio id="sound-kraken" src="https://cdn.pixabay.com/download/audio/2022/03/25/audio_38d633b478.mp3"></audio>
+
+    <!-- Tela 1: PIN de Entrada -->
+    <div id="pin-screen" class="screen active">
+        <div id="pin-container">
+            <h1 id="pin-title">Tesouro Trigonométrico</h1>
+            <input type="text" id="pin-input" placeholder="PIN do Navio">
+            <button id="pin-button">Embarcar!</button>
+        </div>
+    </div>
+
+    <!-- Tela 2: Lobby (Sala de Espera) -->
+    <div id="lobby-screen" class="screen">
+        <div class="overlay">
+            <h1 class="title">Tripulação se Reunindo...</h1>
+            <div id="player-grid"></div>
+            <div id="nickname-setup">
+                <input type="text" id="nickname-input" placeholder="Seu nome pirata">
+                <button id="ready-button">Pronto!</button>
+            </div>
+            <h2 id="start-timer" class="title" style="font-size: 2rem;"></h2>
+        </div>
+    </div>
+
+    <!-- Tela 3: Mapa do Tesouro (Dificuldade) -->
+    <div id="difficulty-screen" class="screen">
+        <h1 class="title">Escolha sua Rota no Mapa!</h1>
+        <div id="difficulty-container">
+            <div class="difficulty-card" data-difficulty="easy">
+                <h3>Ilha dos Marujos</h3>
+                <p>Jornada tranquila, com ângulos notáveis e conceitos básicos.</p>
+            </div>
+            <div class="difficulty-card" data-difficulty="medium">
+                <h3>Baía dos Corsários</h3>
+                <p>Desafios no círculo trigonométrico completo e problemas práticos.</p>
+            </div>
+            <div class="difficulty-card" data-difficulty="hard">
+                <h3>Fortaleza do Kraken</h3>
+                <p>A rota mais perigosa, com identidades e leis trigonométricas.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 4: Jogo Principal -->
+    <div id="game-screen" class="screen">
+        <div id="kraken-banner">🦑 RODADA DO KRAKEN - DOBRÕES EM DOBRO! 🦑</div>
+        <div id="game-container">
+            <div id="question-header">
+                <span id="question-counter"></span>
+                <div id="timer-container">
+                    <div id="timer-fuse"></div>
+                    <div id="timer-spark">💣</div>
+                </div>
+                <span id="player-score"></span>
+            </div>
+            <h2 id="question-text"></h2>
+            <div id="answers-grid">
+                <button class="answer-btn" data-index="0"><span class="answer-icon">☠️</span><span class="answer-text"></span></button>
+                <button class="answer-btn" data-index="1"><span class="answer-icon">⚓</span><span class="answer-text"></span></button>
+                <button class="answer-btn" data-index="2"><span class="answer-icon">☸️</span><span class="answer-text"></span></button>
+                <button class="answer-btn" data-index="3"><span class="answer-icon">🍾</span><span class="answer-text"></span></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tela 5: Feedback da Resposta -->
+    <div id="feedback-screen" class="screen">
+        <div id="feedback-container">
+            <h1 id="feedback-text"></h1>
+            <p id="points-text"></p>
+            <p id="explanation-text"></p>
+        </div>
+    </div>
+
+    <!-- Tela 6: Placar "Procurado" -->
+    <div id="leaderboard-screen" class="screen">
+        <ol id="leaderboard-list"></ol>
+    </div>
+    
+    <!-- Tela 7: Pódio do Tesouro -->
+    <div id="podium-screen" class="screen">
+        <div id="podium-container">
+            <div id="podium-2" class="podium-step"><p class="podium-name"></p><p class="podium-chest">🥈</p><p class="podium-score"></p></div>
+            <div id="podium-1" class="podium-step"><p class="podium-name"></p><p class="podium-chest">🏆</p><p class="podium-score"></p></div>
+            <div id="podium-3" class="podium-step"><p class="podium-name"></p><p class="podium-chest">🥉</p><p class="podium-score"></p></div>
+        </div>
+        <button id="review-button" class="action-button" style="margin-top: 40px;">Ver Diário de Bordo</button>
+    </div>
+
+    <!-- Tela 8: Diário de Bordo (Revisão) -->
+    <div id="review-screen" class="screen">
+        <h1 class="title" style="position: fixed; top: 0; background-color: var(--wood-dark); width: 100%; padding: 10px; margin:0; box-sizing:border-box;">Diário de Bordo</h1>
+        <ul id="review-list"></ul>
+        <button id="restart-game-button" class="action-button">Navegar Novamente</button>
+    </div>
+
+    <!-- Link para o arquivo JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
