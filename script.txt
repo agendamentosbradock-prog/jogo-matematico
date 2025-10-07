@@ -55,10 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function initAudio() {
         if (isAudioInitialized) return;
         Object.values(sounds).forEach(sound => {
-            sound.volume = 0.5; // Ajuste o volume se necessário
-            sound.play().catch(e => {});
-            sound.pause();
-            sound.currentTime = 0;
+            sound.volume = 0.5;
+            sound.load(); // Garante que o áudio está pronto
         });
         isAudioInitialized = true;
         sounds.music.volume = 0.2;
@@ -82,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LÓGICA DAS TELAS E DO JOGO ---
     pinButton.addEventListener('click', () => {
-        initAudio();
+        initAudio(); // Habilita o áudio na primeira interação do usuário
         playSound('click');
         if (document.getElementById('pin-input').value === '2025') {
             switchScreen('lobby-screen');
@@ -318,5 +316,10 @@ document.addEventListener('DOMContentLoaded', () => {
     restartGameButton.addEventListener('click', () => {
         playSound('click');
         switchScreen('pin-screen');
+        if (!sounds.music.paused) {
+            sounds.music.pause();
+            sounds.music.currentTime = 0;
+        }
+        isAudioInitialized = false; // Permite que a música reinicie na próxima partida
     });
 });
