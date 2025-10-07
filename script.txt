@@ -22,6 +22,7 @@ const questionsDB = {
     ]
 };
 
+// --- Elementos do DOM ---
 const pinButton = document.getElementById('pin-button');
 const readyButton = document.getElementById('ready-button');
 const answersGrid = document.getElementById('answers-grid');
@@ -37,12 +38,15 @@ const sounds = {
     kraken: document.getElementById('sound-kraken')
 };
 
+// --- Variáveis Globais ---
 let players = [];
 let playerNickname = "Você";
 let currentQuestionIndex = 0;
 let timerInterval;
 let selectedQuestions = [];
 let playerAnswers = [];
+
+// --- Funções Principais ---
 
 function playSound(soundName) {
     const sound = sounds[soundName];
@@ -57,12 +61,17 @@ function switchScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
+// --- Lógica das Telas ---
+
 pinButton.addEventListener('click', () => {
     playSound('click');
     if (document.getElementById('pin-input').value === '2025') {
         switchScreen('lobby-screen');
+        // Tenta tocar a música após a primeira interação do usuário
         document.body.addEventListener('click', () => {
-            if (sounds.music.paused) sounds.music.play().catch(e => {});
+            if (sounds.music.paused) {
+                sounds.music.play().catch(e => {});
+            }
         }, { once: true });
         setupLobby();
     }
@@ -116,6 +125,7 @@ difficultyContainer.addEventListener('click', (e) => {
 function startGame() {
     currentQuestionIndex = 0;
     playerAnswers = [];
+    players.forEach(p => p.score = 0); // Reseta a pontuação
     showQuestion();
 }
 
@@ -186,7 +196,7 @@ function handleAnswer(selectedIndex) {
 
     if (isCorrect) {
         playSound('correct');
-        const timeRemaining = parseFloat(window.getComputedStyle(document.getElementById('timer-fuse')).transform.split(',')[4]);
+        const timeRemaining = parseFloat(window.getComputedStyle(document.getElementById('timer-fuse')).transform.split(',')[4].trim());
         pointsGained = Math.round(500 + 500 * timeRemaining);
         if (currentQuestionIndex === selectedQuestions.length - 1) {
             pointsGained *= 2;
